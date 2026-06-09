@@ -1,0 +1,64 @@
+version: 2
+
+sources:
+  - name: airstats
+    schema: raw
+    tables:
+      - name: airports
+        identifier: airports 
+        columns:
+          - name: id
+          - name: ident
+          - name: type
+          - name: name
+          - name: latitude_deg
+          - name: longitude_deg
+          - name: elevation_ft
+          - name: continent
+          - name: iso_country
+          - name: iso_region
+          - name: municipality
+          - name: scheduled_service
+          - name: gps_code
+          - name: iata_code
+          - name: local_code
+          - name: home_link
+          - name: wikipedia_link
+          - name: keywords
+
+      - name: runways
+        identifier: runways
+        columns:
+          - name: id
+          - name: airport_ref 
+          - name: airport_ident
+          - name: length_ft
+          - name: width_ft
+          - name: surface
+          - name: lighted
+          - name: closed
+          - name: le_ident
+          - name: le_latitude_deg
+          - name: le_longitude_deg
+          - name: le_elevation_ft
+          - name: le_heading_degt
+          - name: le_displaced_threshold_ft
+          - name: he_ident
+          - name: he_latitude_deg
+          - name: he_longitude_deg
+          - name: he_elevation_ft
+          - name: he_heading_degt
+          - name: he_displaced_threshold_ft
+
+      - name: airport_comments
+        identifier: airport_comments
+        columns:
+          - name: id
+          - name: thread_ref
+          - name: airport_ref
+          - name: airport_ident
+          - name: date
+          - name: member_nickname
+          - name: subject
+          - name: body
+          - name: loaded_at

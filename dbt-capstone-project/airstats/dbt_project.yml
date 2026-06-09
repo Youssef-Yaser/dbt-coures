@@ -1,0 +1,33 @@
+name: 'airstats'
+version: '1.0.0'
+
+profile: 'airstats'
+
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+
+models:
+  airstats:
+    Bronze:
+      +materialized: ephemeral
+    Silver:
+      +materialized: table
+
+tests:
+  airstats:
+    +store_failures: true
+    +schema: _test_failures
+
+dispatch:
+  - macro_namespace: dbt
+    search_order: ['airstats', 'dbt']

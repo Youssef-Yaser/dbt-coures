@@ -1,0 +1,223 @@
+models:
+  # ──────────────────────────────────────────────────────────────
+  # silver_airports
+  # ──────────────────────────────────────────────────────────────
+  - name: silver_airports
+    description: Cleansed table which contains Airport data.
+    config:
+      meta:
+        contact:
+          enforce: true
+    columns:
+      - name: airport_id
+        description: Unique numeric identifier for each airport.
+        tests:
+          - not_null
+          - unique
+
+      - name: airport_ident
+        description: Unique identifier string for each airport (e.g. EGLL, KJFK).
+        tests:
+          - not_null
+          - unique
+          - dbt_expectations.expect_column_values_to_match_regex:
+              arguments:
+                regex: "^[A-Za-z0-9-]{2,7}$"
+                # Relaxed: allows lowercase and hyphens (e.g. SEQM-1)
+
+      - name: airport_type
+        description: The type of the airport.
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - small_airport
+                - balloonport
+                - medium_airport
+                - large_airport
+                - heliport
+                - seaplane_base
+                - closed
+
+      - name: airport_name
+        description: The name of the airport.
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              arguments:
+                min_value: 2
+                max_value: 200
+
+      - name: airport_lat
+        description: The latitude of the airport in decimal degrees.
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: -90
+                max_value: 90
+
+      - name: airport_long
+        description: The longitude of the airport in decimal degrees.
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: -180
+                max_value: 180
+
+      - name: continent
+        description: The continent where the airport is located.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['AF', 'AN', 'AS', 'EU', 'NA', 'OC', 'SA']
+
+      - name: iso_country
+        description: The ISO country code where the airport is located.
+        tests:
+          - not_null
+
+      - name: iso_region
+        description: The ISO region code where the airport is located.
+        tests:
+          - not_null
+
+  # ──────────────────────────────────────────────────────────────
+  # silver_runways
+  # ──────────────────────────────────────────────────────────────
+  - name: silver_runways
+    description: Cleansed table which contains Runway data.
+    config:
+      meta:
+        contact:
+          enforce: true
+    columns:
+      - name: runway_id
+        description: Unique identifier for each runway.
+        tests:
+          - not_null
+          - unique
+
+      - name: airport_id
+        description: Foreign key referencing the airport associated with the runway.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('silver_airports')
+              field: airport_id
+              severity: warn
+
+      - name: runway_length_ft
+        description: The length of the runway in feet. Nullable — not all runways have a recorded length.
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 20000
+              config:
+                severity: warn
+
+      - name: runway_width_ft
+        description: The width of the runway in feet. Nullable — not all runways have a recorded width.
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 500
+              config:
+                severity: warn
+
+      - name: runway_surface
+        description: The surface type of the runway.
+        tests:
+          - not_null:
+              config:
+                severity: warn
+
+      - name: runway_lighted
+        description: Indicates whether the runway is lighted (1 for yes, 0 for no).
+        tests:
+          - not_null:
+              config:
+                severity: warn
+          - accepted_values:
+              values: [0, 1]
+              config:
+                severity: warn
+
+      - name: runway_closed
+        description: Indicates whether the runway is closed (1 for yes, 0 for no).
+        tests:
+          - not_null:
+              config:
+                severity: warn
+          - accepted_values:
+              values: [0, 1]
+              config:
+                severity: warn
+
+  # ──────────────────────────────────────────────────────────────
+  # silver_airport_comments
+  # ──────────────────────────────────────────────────────────────
+  - name: silver_airport_comments
+    description: Cleansed table which contains Airport Comments data.
+    config:
+      meta:
+        contact:
+          enforce: true
+    columns:
+      - name: comment_id
+        description: Unique identifier for each comment.
+        tests:
+          - not_null
+          - unique
+
+      - name: airport_id
+        description: Foreign key referencing the airport associated with the comment.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('silver_airports')
+              field: airport_id
+              severity: warn
+
+      - name: airport_ident
+        description: Identifier string of the airport this comment relates to.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('silver_airports')
+              field: airport_ident
+              severity: warn
+
+      - name: comment_timestamp
+        description: The timestamp when the comment was made.
+        tests:
+          - not_null
+
+      - name: member_nickname
+        description: The nickname of the member who made the comment.
+        tests:
+          - not_null
+
+      - name: comment_subject
+        description: The subject of the comment. Nullable — 2 rows confirmed with no subject.
+        tests:
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              arguments:
+                min_value: 1
+                max_value: 500
+              config:
+                severity: warn
+
+      - name: comment_body
+        description: The body of the comment.
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              arguments:
+                min_value: 1
+                max_value: 5000
+              config:
+                severity: warn
